@@ -1,0 +1,9 @@
+[Plymouth Theme]
+Name=bugjump-classic
+Description=Classic Bugjump animation.
+Comment=Classic Bugjump animation.
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/bugjump-classic
+ScriptFile=/usr/share/plymouth/themes/bugjump-classic/bugjump-classic.script

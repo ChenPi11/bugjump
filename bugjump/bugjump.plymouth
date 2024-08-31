@@ -1,0 +1,9 @@
+[Plymouth Theme]
+Name=bugjump
+Description=Bugjump animation.
+Comment=This theme is a modification of the default theme, using a bugjump animation.
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/bugjump
+ScriptFile=/usr/share/plymouth/themes/bugjump/bugjump.script

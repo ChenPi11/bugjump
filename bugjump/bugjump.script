@@ -1,0 +1,261 @@
+/*
+    Author : ChenPi11
+    Mail : wushengwuxi-msctinoulk@outlook.com
+    Github : @ChenPi11
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <https://unlicense.org>
+*/
+
+// Screen size.
+screen.w = Window.GetWidth(0);
+screen.h = Window.GetHeight(0);
+screen.half.w = screen.w / 2;
+screen.half.h = screen.h / 2;
+screen.x = Window.GetX();
+screen.y = Window.GetY();
+
+NUM = 81;
+SPEED = 2;
+FAKE_OFFSET = 0.05; // If your linux boot too fast to play the animation, increase this value.
+FONTSIZE = Math.Int(screen.w * 0.02);
+FONT = "unifont"; // This cannot work.
+
+// --------------------------------- Init --------------------------
+
+if (Plymouth.GetMode() == "boot")
+{
+    // Bugjump red color.
+    Window.SetBackgroundTopColor(0.8705882352941177, 0.10588235294117647, 0.23921568627450981);
+    Window.SetBackgroundBottomColor(0.8705882352941177, 0.10588235294117647, 0.23921568627450981);
+
+    for (i = 0; i < NUM; i++)
+    {
+        // 0.159 = 324 / 1343 * 0.663
+        logo.images[i] = Image("progress-" + i + ".png").Scale(screen.w * 0.663, screen.w * 0.159);
+    }
+}
+else
+{
+    NUM = 1;
+    logo.images[0] = Image("progress-80.png").Scale(screen.w * 0.663, screen.w * 0.159);
+}
+
+// --------------------------------- Logo --------------------------
+logo.is_done = 0;
+logo.progress = 0;
+
+logo.sprite = Sprite();
+logo.sprite.SetX(screen.x + screen.half.w - logo.images[0].GetWidth() / 2);
+logo.sprite.SetY(screen.y + screen.half.h - logo.images[0].GetHeight() / 2);
+
+fun update_logo()
+{
+    if (!logo.is_done)
+    {
+        idx = Math.Int(logo.progress / SPEED);
+        if (idx >= NUM)
+        {
+            logo.is_done = 1;
+            return;
+        }
+        logo.sprite.SetImage(logo.images[idx]);
+        logo.progress++;
+    }
+}
+
+// --------------------------------- Progress bar --------------------------
+progress.is_finished = 0;
+// 0.028 = 0.677 * (20 / 480)
+progress.box_image = Image("progress_box.png").Scale(screen.w * 0.677, screen.w * 0.028);
+progress.box = Sprite(progress.box_image);
+progress.box.SetX(screen.w * 0.5 - progress.box_image.GetWidth() / 2);
+progress.box.SetY(screen.h * 0.75);
+progress.box.SetZ(1);
+progress.bar_image = Image("progress_bar.png").Scale(progress.box_image.GetWidth() * 0.983, progress.box_image.GetHeight() * 0.6);
+progress.bar = Sprite();
+progress.bar.SetX(screen.w * 0.5 - progress.bar_image.GetWidth() / 2);
+progress.bar.SetY(progress.box.GetY() + progress.box_image.GetHeight() / 2 - progress.bar_image.GetHeight() / 2);
+progress.bar.SetZ(2);
+progress.opacity = 0;
+if (Plymouth.GetMode() == "boot")
+{
+    progress.box.SetOpacity(progress.opacity);
+    progress.bar.SetOpacity(progress.opacity);
+}
+progress.fade_mode = 0; // 0: No fade, 1: Fade out. 2: Fade in.
+progress.fade_mode_setted = 0;
+
+fun set_progress(precent)
+{
+    if(!progress.is_finished)
+    {
+        if(precent >= 1)
+        {
+            precent = 1;
+            progress.is_finished = 1;
+            progress.fade_mode = 1;
+        }
+        progress.bar.SetImage(progress.bar_image.Scale(progress.box_image.GetWidth() * 0.983 * precent, progress.box_image.GetHeight() * 0.6));
+    }
+}
+
+fun update_progress_opacity()
+{
+    if(progress.fade_mode == 1)
+    {
+        progress.fade_mode_setted = 1;
+        progress.opacity -= 0.03;
+        if(progress.opacity <= 0)
+        {
+            progress.opacity = 0;
+            progress.fade_mode = 0;
+        }
+        progress.box.SetOpacity(progress.opacity);
+        progress.bar.SetOpacity(progress.opacity);
+        
+    }
+    else if(progress.fade_mode == 2 && logo.is_done)
+    {
+        progress.fade_mode_setted = 1;
+        progress.opacity += 0.03;
+        if(progress.opacity >= 1)
+        {
+            progress.fade_mode = 0;
+            progress.opacity = 1;
+        }
+        progress.box.SetOpacity(progress.opacity);
+        progress.bar.SetOpacity(progress.opacity);
+    }
+}
+
+// --------------------------------- Refresh (Logo animation) --------------------------
+
+fun on_refresh()
+{
+    update_logo();
+    if (logo.is_done && progress.opacity != 0 && progress.fade_mode_setted == 0 && Plymouth.GetMode() == "boot")
+    {
+        progress.fade_mode = 2;
+    }
+    update_progress_opacity();
+}
+Plymouth.SetRefreshFunction(on_refresh);
+
+// ----------------------------------------- Message --------------------------------
+message.sprite = Sprite();
+message.sprite.SetZ(3);
+
+fun on_message(text)
+{
+    message.image = Image.Text(text, 1, 1, 1, 1, FONT);
+    message.sprite.SetImage(message.image);
+    message.sprite.SetX(screen.half.w - message.image.GetWidth() / 2);
+    message.sprite.SetY(message.image.GetHeight());
+    message.sprite.SetOpacity(1);
+}
+Plymouth.SetMessageFunction(on_message);
+
+// ----------------------------------------- Question -------------------------------
+answer.sprite = Sprite();
+answer.sprite.SetZ(3);
+
+fun on_display_question(prompt, entry)
+{
+    progress.fade_mode = 1;
+    if (entry == "")
+	{
+        entry = "<answer>";
+	}
+
+    on_message(prompt);
+
+    answer.image = Image.Text(entry, 1, 1, 1, 1, FONT);
+    answer.sprite.SetImage(answer.image);
+    answer.sprite.SetX(screen.half.w - answer.image.GetWidth() / 2);
+    answer.sprite.SetY(screen.h - 2 * answer.image.GetHeight());
+    answer.sprite.SetOpacity(1);
+}
+Plymouth.SetDisplayQuestionFunction(on_display_question);
+
+// ----------------------------------------- Password -------------------------------
+bullets = null;
+bullet_image = Image("bullet.png").Scale(FONTSIZE, FONTSIZE);
+password_prompt.image = Image("password_prompt.png").Scale(FONTSIZE * 10.333, FONTSIZE); // 10.333 = 217 / 21
+password_prompt.sprite = Sprite(password_prompt.image);
+password_prompt.sprite.SetX(screen.half.w - password_prompt.image.GetWidth() / 2);
+password_prompt.sprite.SetY(screen.h - 4 * password_prompt.image.GetHeight());
+password_prompt.sprite.SetZ(100);
+password_prompt.sprite.SetOpacity(0); // Hide it.
+
+fun on_display_password(prompt_str, bullet_count)
+{
+    progress.fade_mode = 1;
+    on_message(prompt_str);
+
+    total_width = bullet_count * bullet_image.GetWidth();
+    start_pos = screen.half.w - total_width / 2;
+
+    password_prompt.sprite.SetOpacity(1); // Show it.
+
+    // Clear all bullets. (User might hit backspace)
+    bullets = null;
+    for (i = 0; i < bullet_count; i++)
+	{
+        bullets[i].sprite = Sprite(bullet_image);
+        bullets[i].sprite.SetX(start_pos + i * bullet_image.GetWidth());
+        bullets[i].sprite.SetY(screen.h - 2 * bullet_image.GetHeight());
+        bullets[i].sprite.SetZ(100);
+    }
+}
+Plymouth.SetDisplayPasswordFunction(on_display_password);
+
+// ----------------------------------------- Progress --------------------------------
+fun progress_callback(time, boot_progress)
+{
+    if (Plymouth.GetMode() != "boot")
+    {
+        boot_progress = 1;
+    }
+    else if (boot_progress < 0.97)
+    {
+        boot_progress += FAKE_OFFSET; // Fake progress. Make it fade out earlier.
+    }
+    set_progress(boot_progress);
+}
+Plymouth.SetBootProgressFunction(progress_callback);
+
+// ----------------------------------------- Normal display (Unset all text) ----------------------
+fun on_display_normal()
+{
+    bullets = null;
+    password_prompt.sprite.SetOpacity(0);
+    message.sprite.SetOpacity(0);
+    answer.sprite.SetOpacity(0);
+    if(!progress.is_finished)
+    {
+        progress.fade_mode = 2;
+    }
+}
+Plymouth.SetDisplayNormalFunction(on_display_normal);

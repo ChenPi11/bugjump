@@ -1,0 +1,157 @@
+/*
+    Author : ChenPi11
+    Mail : wushengwuxi-msctinoulk@outlook.com
+    Github : @ChenPi11
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <https://unlicense.org>
+*/
+
+Window.SetBackgroundTopColor(1, 1, 1);
+Window.SetBackgroundBottomColor(1, 1, 1);
+
+screen.w = Window.GetWidth(0);
+screen.h = Window.GetHeight(0);
+screen.half.w = screen.w / 2;
+screen.half.h = screen.h / 2;
+screen.x = Window.GetX();
+screen.y = Window.GetY();
+
+NUM = 32;
+SPEED = 2;
+FONTSIZE = Math.Int(screen.w * 0.02);
+
+background = Image("background.png");
+background = background.Scale(screen.h, screen.h); // 1 : 1
+background_sprite = Sprite(background);
+background_sprite.SetX(screen.x + screen.half.w - background.GetWidth() / 2);
+background_sprite.SetY(screen.y + screen.half.h - background.GetHeight() / 2);
+background_sprite.SetZ(-1);
+
+tux = Image("tux.png"); // 216x256
+tux = tux.Scale(screen.h / 6, screen.h / 6 * (256 / 216));
+tux_sprite = Sprite(tux);
+tux_sprite.SetX(screen.x + screen.w - tux.GetWidth());
+tux_sprite.SetY(screen.y + screen.h - tux.GetHeight());
+tux_sprite.SetZ(1);
+
+for(i = 0; i < NUM; i++)
+{
+    hammers[i] = Image("progress-" + i + ".png"); // 128x62
+    hammers[i] = hammers[i].Scale(screen.h / 3, screen.h / 3 * (62 / 128));
+}
+
+hammer_sprite = Sprite();
+hammer_sprite.SetX(tux_sprite.GetX() + tux.GetWidth() / 2 - hammers[0].GetWidth() / 1.5);
+hammer_sprite.SetY(tux_sprite.GetY() - hammers[0].GetHeight());
+hammer_sprite.SetZ(1);
+
+progress = 0;
+fun refresh_callback()
+{
+    idx = Math.Int(progress / SPEED);
+    if (idx > NUM)
+    {
+        progress = 0;
+    }
+    hammer_sprite.SetImage(hammers[idx]);
+    progress++;
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+// ----------------------------------------- Message --------------------------------
+message.sprite = Sprite();
+message.sprite.SetZ(2);
+
+fun on_message(text)
+{
+    message.image = Image.Text(text, 0, 0, 0, 1, FONT);
+    message.sprite.SetImage(message.image);
+    message.sprite.SetX(screen.half.w - message.image.GetWidth() / 2);
+    message.sprite.SetY(message.image.GetHeight());
+    message.sprite.SetOpacity(1);
+}
+Plymouth.SetMessageFunction(on_message);
+
+// ----------------------------------------- Question -------------------------------
+answer.sprite = Sprite();
+answer.sprite.SetZ(3);
+
+fun on_display_question(prompt, entry)
+{
+    if (entry == "")
+	{
+        entry = "<answer>";
+	}
+
+    on_message(prompt);
+
+    answer.image = Image.Text(entry, 0, 0, 0, 1, FONT);
+    answer.sprite.SetImage(answer.image);
+    answer.sprite.SetX(screen.half.w - answer.image.GetWidth() / 2);
+    answer.sprite.SetY(screen.h - 2 * answer.image.GetHeight());
+    answer.sprite.SetOpacity(1);
+}
+Plymouth.SetDisplayQuestionFunction(on_display_question);
+
+// ----------------------------------------- Password -------------------------------
+bullets = null;
+bullet_image = Image("bullet.png").Scale(FONTSIZE, FONTSIZE);
+password_prompt.image = Image("password_prompt.png").Scale(FONTSIZE * 10.333, FONTSIZE); // 10.333 = 217 / 21
+password_prompt.sprite = Sprite(password_prompt.image);
+password_prompt.sprite.SetX(screen.half.w - password_prompt.image.GetWidth() / 2);
+password_prompt.sprite.SetY(screen.h - 4 * password_prompt.image.GetHeight());
+password_prompt.sprite.SetZ(2);
+password_prompt.sprite.SetOpacity(0); // Hide it.
+
+fun on_display_password(prompt_str, bullet_count)
+{
+    on_message(prompt_str);
+
+    total_width = bullet_count * bullet_image.GetWidth();
+    start_pos = screen.half.w - total_width / 2;
+
+    password_prompt.sprite.SetOpacity(1); // Show it.
+
+    // Clear all bullets. (User might hit backspace)
+    bullets = null;
+    for (i = 0; i < bullet_count; i++)
+	{
+        bullets[i].sprite = Sprite(bullet_image);
+        bullets[i].sprite.SetX(start_pos + i * bullet_image.GetWidth());
+        bullets[i].sprite.SetY(screen.h - 2 * bullet_image.GetHeight());
+        bullets[i].sprite.SetZ(2);
+    }
+}
+Plymouth.SetDisplayPasswordFunction(on_display_password);
+
+// ----------------------------------------- Normal display (Unset all text) ----------------------
+fun on_display_normal()
+{
+    bullets = null;
+    password_prompt.sprite.SetOpacity(0);
+    message.sprite.SetOpacity(0);
+    answer.sprite.SetOpacity(0);
+}
+Plymouth.SetDisplayNormalFunction(on_display_normal);
