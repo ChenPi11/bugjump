@@ -6,4 +6,4 @@ ModuleName=script
 
 [script]
 ImageDir=/usr/share/plymouth/themes/bugjump-dark
-ScriptFile=/usr/share/plymouth/themes/bugjump/bugjump-dark.script
+ScriptFile=/usr/share/plymouth/themes/bugjump-dark/bugjump-dark.script
