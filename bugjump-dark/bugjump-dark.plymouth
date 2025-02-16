@@ -1,0 +1,9 @@
+[Plymouth Theme]
+Name=bugjump-dark
+Description=Bugjump animation -- dark theme.
+Comment=This theme is a modification of the default theme, using a bugjump dark animation.
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/bugjump-dark
+ScriptFile=/usr/share/plymouth/themes/bugjump/bugjump-dark.script

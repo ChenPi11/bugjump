@@ -3,18 +3,21 @@
 ## bugjump -- New style bugjump splash screen
 
 + Without password prompt
-![preview-no-pwd](https://raw.githubusercontent.com/ChenPi11/bugjump/main/preview/preview-no-pwd.gif)
+![preview-no-pwd](./preview/preview-no-pwd.gif)
 
 + With password prompt
-+ ![preview-pwd](https://raw.githubusercontent.com/ChenPi11/bugjump/main/preview/preview-pwd.gif)
+![preview-pwd](./preview/preview-pwd.gif)
+
++ With password prompt (dark theme)
+![preview-dark-pwd](./preview/preview-dark-pwd.gif)
 
 ## bugjump-classic -- Classic bugjump with forge splash screen
 
 + Without password prompt
-![preview-no-pwd](https://raw.githubusercontent.com/ChenPi11/bugjump/main/preview/preview-classic-no-pwd.gif)
+![preview-no-pwd](./preview/preview-classic-no-pwd.gif)
 
 + With password prompt
-+ ![preview-pwd](https://raw.githubusercontent.com/ChenPi11/bugjump/main/preview/preview-classic-pwd.gif)
+![preview-pwd](./preview/preview-classic-pwd.gif)
 
 ## Source of materials
 
